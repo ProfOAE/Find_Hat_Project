@@ -1,0 +1,109 @@
+const prompt = require('prompt-sync')({sigint: true});
+
+const hat = '^';
+const hole = 'O';
+const fieldCharacter = '░';
+const path = '*';
+
+class Field {
+  constructor(field = [[]]) {
+    this.field = field;
+    this.x_axis = 0;
+    this.y_axis = 0;
+    // Set the "home" position before the game starts
+    this.field[0][0] = path;
+  }
+
+  startGame() {
+    let playGame = true;
+    while (playGame) {
+      this.print();
+      this.findOut();
+      if (!this.withinArea()) {
+        console.log('Restricted Area');
+        playGame = false;
+        break;
+      } else if (this.this_is_hole()) {
+        console.log('You fell into a hole');
+        playGame = false;
+        break;
+      } else if (this.this_is_hat()) {
+        console.log('You find the hat, Well done!!!');
+        playGame = false;
+        break;
+      }
+      this.field[this.y_axis][this.x_axis] = path;
+    }
+  }
+
+  findOut() {
+    const result = prompt('Which way? ').toUpperCase();
+    switch (result) {
+      case 'L':
+        this.x_axis = this.x_axis -  1;
+        break;
+      case 'R':
+        this.x_axis = this.x_axis + 1;
+        break;
+      case 'U':
+        this.y_axis =   this.y_axis - 1;
+        break;
+      case 'D':
+        this.y_axis = this.y_axis + 1;
+        break;
+      default:
+        console.log('Please Enter U, D, L or R.');
+        this.findOut();
+        break;
+    }
+  }
+
+  withinArea() {
+    return (
+      this.y_axis >= 0 &&
+      this.x_axis >= 0 &&
+      this.y_axis < this.field.length &&
+      this.x_axis < this.field[0].length
+    );
+  }
+
+  this_is_hat() {
+    return this.field[this.y_axis][this.x_axis] === hat;
+  }
+
+  this_is_hole() {
+    return this.field[this.y_axis][this.x_axis] === hole;
+  }
+
+  print() {
+    const display = this.field.map(row => {
+        return row.join('');
+      }).join('\n');
+    console.log(display);
+  }
+
+  static generateField(h, w, percentage = 0.1) {
+    const field = new Array(h).fill(0).map(el => new Array(w));
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const prob = Math.random();
+        field[y][x] = prob > percentage ? fieldCharacter : hole;
+      }
+    }
+  
+    const hatLocation = {
+      x: Math.floor(Math.random() * w),
+      y: Math.floor(Math.random() * h)
+    };
+    
+    while (hatLocation.x === 0 && hatLocation.y === 0) {
+      hatLocation.x = Math.floor(Math.random() * w);
+      hatLocation.y = Math.floor(Math.random() * h);
+    }
+    field[hatLocation.y][hatLocation.x] = hat;
+    return field;
+  }
+}
+
+const field = new Field(Field.generateField(12, 12, 0.3));
+field.startGame();
